@@ -1,0 +1,1 @@
+[Gmina Lipusz Harmonogram odbioru odpadów 2020r.](https://zaza.github.io/icals/lipusz-smieci-2020.ics).
