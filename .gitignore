@@ -1,3 +1,6 @@
 .gradle
 build
 output
+.settings
+/.classpath
+/.project
