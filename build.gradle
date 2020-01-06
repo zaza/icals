@@ -11,7 +11,8 @@ repositories {
 dependencies {
     implementation 'com.google.guava:guava:28.0-jre'
     implementation 'org.yaml:snakeyaml:1.25'
-    compile group: 'org.mnode.ical4j', name: 'ical4j', version: '3.0.11'
+    implementation 'org.slf4j:slf4j-nop:1.7.30'
+    implementation 'org.mnode.ical4j:ical4j:3.0.11'
     testImplementation 'junit:junit:4.12'
 }
 

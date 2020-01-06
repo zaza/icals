@@ -65,9 +65,8 @@ public class App {
 
 	private void generateCalendarFile(Calendar calendar) throws ValidationException, IOException {
 		String outputIcsFileName = inputYamlFileName.substring(0, inputYamlFileName.lastIndexOf('.'));
-		FileOutputStream fout = new FileOutputStream("output/" + outputIcsFileName + ".ics");
-		CalendarOutputter outputter = new CalendarOutputter();
-		outputter.output(calendar, fout);
+		FileOutputStream out = new FileOutputStream(outputIcsFileName + ".ics");
+		new CalendarOutputter().output(calendar, out);
 	}
 
 }
