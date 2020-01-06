@@ -3,7 +3,9 @@ package icals;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.yaml.snakeyaml.Yaml;
 
@@ -16,45 +18,54 @@ import net.fortuna.ical4j.model.property.CalScale;
 import net.fortuna.ical4j.model.property.ProdId;
 import net.fortuna.ical4j.model.property.Version;
 import net.fortuna.ical4j.util.RandomUidGenerator;
-import net.fortuna.ical4j.util.UidGenerator;
 import net.fortuna.ical4j.validate.ValidationException;
 
 public class App {
+
 	public static void main(String[] args) throws Exception {
-		App app = new App();
-		System.out.println(app.readYaml());
-		app.generateCalendarFile(app.createCalendar());
+		App app = new App("lipusz-smieci-2020.yaml");
+		app.generateCalendarFile(app.createCalendar(app.readYaml()));
+	}
+
+	private final String inputYamlFileName;
+
+	private App(String inputYamlFileName) {
+		this.inputYamlFileName = inputYamlFileName;
 	}
 
 	private Map<String, Object> readYaml() {
 		Yaml yaml = new Yaml();
-		InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("lipusz-smieci-2020.yaml");
+		InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(inputYamlFileName);
 		return yaml.load(inputStream);
 	}
 
-	private Calendar createCalendar() {
+	private Calendar createCalendar(Map<String, Object> yaml) {
 		Calendar calendar = new Calendar();
 		calendar.getProperties().add(new ProdId("-//zaza/icals//iCal4j 1.0//EN"));
 		calendar.getProperties().add(Version.VERSION_2_0);
 		calendar.getProperties().add(CalScale.GREGORIAN);
-		calendar.getComponents().add(christmas());
+		for (Entry<String, Object> entry : yaml.entrySet()) {
+			if (entry.getValue() == null || ((Collection<?>) entry.getValue()).isEmpty()) {
+				continue;
+			}
+			@SuppressWarnings("unchecked")
+			Collection<Date> dates = (Collection<Date>) entry.getValue();
+			for (java.util.Date date : dates) {
+				calendar.getComponents().add(newCalendarComponent(entry.getKey(), date));
+			}
+		}
 		return calendar;
 	}
 
-	private CalendarComponent christmas() {
-		java.util.Calendar calendar = java.util.Calendar.getInstance();
-		calendar.set(java.util.Calendar.MONTH, java.util.Calendar.DECEMBER);
-		calendar.set(java.util.Calendar.DAY_OF_MONTH, 25);
-
-		VEvent christmas = new VEvent(new Date(calendar.getTime()), "Christmas Day");
-
-		UidGenerator ug = new RandomUidGenerator();
-		christmas.getProperties().add(ug.generateUid());
-		return christmas;
+	private CalendarComponent newCalendarComponent(String eventName, java.util.Date date) {
+		VEvent event = new VEvent(new Date(date.getTime()), eventName);
+		event.getProperties().add(new RandomUidGenerator().generateUid());
+		return event;
 	}
 
 	private void generateCalendarFile(Calendar calendar) throws ValidationException, IOException {
-		FileOutputStream fout = new FileOutputStream("output/mycalendar.ics");
+		String outputIcsFileName = inputYamlFileName.substring(0, inputYamlFileName.lastIndexOf('.'));
+		FileOutputStream fout = new FileOutputStream("output/" + outputIcsFileName + ".ics");
 		CalendarOutputter outputter = new CalendarOutputter();
 		outputter.output(calendar, fout);
 	}
